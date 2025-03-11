@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\DeelRate.Api.props" />
+</Project>

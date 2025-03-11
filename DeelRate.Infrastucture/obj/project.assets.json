@@ -1,0 +1,121 @@
+{
+  "version": 3,
+  "targets": {
+    "net9.0": {
+      "DeelRate.Application/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "DeelRate.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/DeelRate.Application.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/DeelRate.Application.dll": {}
+        }
+      },
+      "DeelRate.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/DeelRate.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/DeelRate.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "DeelRate.Application/1.0.0": {
+      "type": "project",
+      "path": "../DeelRate.Application/DeelRate.Application.csproj",
+      "msbuildProject": "../DeelRate.Application/DeelRate.Application.csproj"
+    },
+    "DeelRate.Domain/1.0.0": {
+      "type": "project",
+      "path": "../DeelRate.Domain/DeelRate.Domain.csproj",
+      "msbuildProject": "../DeelRate.Domain/DeelRate.Domain.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net9.0": [
+      "DeelRate.Application >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\Emmanuel\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastucture\\DeelRate.Infrastucture.csproj",
+      "projectName": "DeelRate.Infrastucture",
+      "projectPath": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastucture\\DeelRate.Infrastucture.csproj",
+      "packagesPath": "C:\\Users\\Emmanuel\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastucture\\obj\\",
+      "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
+      "configFilePaths": [
+        "C:\\Users\\Emmanuel\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net9.0"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "projectReferences": {
+            "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Application\\DeelRate.Application.csproj": {
+              "projectPath": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Application\\DeelRate.Application.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "9.0.100"
+    },
+    "frameworks": {
+      "net9.0": {
+        "targetAlias": "net9.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.103/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}

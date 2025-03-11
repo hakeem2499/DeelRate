@@ -1,0 +1,6 @@
+@DeelRate.Api_HostAddress = http://localhost:5271
+
+GET {{DeelRate.Api_HostAddress}}/auth/login/
+Accept: application/json
+
+###

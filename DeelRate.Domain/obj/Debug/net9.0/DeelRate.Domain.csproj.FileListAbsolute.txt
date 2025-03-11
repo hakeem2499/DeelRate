@@ -1,0 +1,11 @@
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\bin\Debug\net9.0\DeelRate.Domain.deps.json
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\bin\Debug\net9.0\DeelRate.Domain.dll
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\bin\Debug\net9.0\DeelRate.Domain.pdb
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\DeelRate.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\DeelRate.Domain.AssemblyInfoInputs.cache
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\DeelRate.Domain.AssemblyInfo.cs
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\DeelRate.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\DeelRate.Domain.dll
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\refint\DeelRate.Domain.dll
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\DeelRate.Domain.pdb
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\ref\DeelRate.Domain.dll

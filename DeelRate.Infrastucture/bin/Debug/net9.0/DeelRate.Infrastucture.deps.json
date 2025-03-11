@@ -1,0 +1,55 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "DeelRate.Infrastucture/1.0.0": {
+        "dependencies": {
+          "DeelRate.Application": "1.0.0"
+        },
+        "runtime": {
+          "DeelRate.Infrastucture.dll": {}
+        }
+      },
+      "DeelRate.Application/1.0.0": {
+        "dependencies": {
+          "DeelRate.Domain": "1.0.0"
+        },
+        "runtime": {
+          "DeelRate.Application.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "DeelRate.Domain/1.0.0": {
+        "runtime": {
+          "DeelRate.Domain.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "DeelRate.Infrastucture/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "DeelRate.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "DeelRate.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

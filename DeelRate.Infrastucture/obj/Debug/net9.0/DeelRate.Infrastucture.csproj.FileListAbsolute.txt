@@ -1,0 +1,17 @@
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\bin\Debug\net9.0\DeelRate.Infrastucture.deps.json
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\bin\Debug\net9.0\DeelRate.Infrastucture.dll
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\bin\Debug\net9.0\DeelRate.Infrastucture.pdb
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\bin\Debug\net9.0\DeelRate.Application.dll
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\bin\Debug\net9.0\DeelRate.Domain.dll
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\bin\Debug\net9.0\DeelRate.Application.pdb
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\bin\Debug\net9.0\DeelRate.Domain.pdb
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\DeelRate.Infrastucture.csproj.AssemblyReference.cache
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\DeelRate.Infrastucture.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\DeelRate.Infrastucture.AssemblyInfoInputs.cache
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\DeelRate.Infrastucture.AssemblyInfo.cs
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\DeelRate.Infrastucture.csproj.CoreCompileInputs.cache
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\DeelRate.E27D26B9.Up2Date
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\DeelRate.Infrastucture.dll
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\refint\DeelRate.Infrastucture.dll
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\DeelRate.Infrastucture.pdb
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\ref\DeelRate.Infrastucture.dll
