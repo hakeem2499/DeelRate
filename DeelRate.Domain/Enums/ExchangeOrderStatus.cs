@@ -1,12 +1,11 @@
-namespace DeelRate.Domain.Enums
+namespace DeelRate.Domain.Enums;
+
+public enum ExchangeOrderStatus
 {
-    public enum ExchangeOrderStatus
-    {
-        Initiated = 0,
-        PaymentPending = 1,
-        PaymentCompleted = 2,
-        ConfirmPayment = 3,
-        ExchangeOrderCompleted = 4,
-        ExchangeOrderCancelled = 5,
-    }
+    Initiated = 0,
+    PaymentPending = 1,
+    PaymentCompleted = 2,
+    ConfirmPayment = 3,
+    ExchangeOrderCompleted = 4,
+    ExchangeOrderCancelled = 5,
 }

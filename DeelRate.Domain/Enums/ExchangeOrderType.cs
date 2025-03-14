@@ -1,8 +1,7 @@
-namespace DeelRate.Domain.Enums
+namespace DeelRate.Domain.Enums;
+
+public enum ExchangeOrderType
 {
-    public enum ExchangeOrderType
-    {
-        Buy = 0,
-        Sell = 1,
-    }
+    Buy = 0,
+    Sell = 1,
 }
