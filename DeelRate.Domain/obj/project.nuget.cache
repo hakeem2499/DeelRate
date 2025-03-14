@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "kOFRpW0zhzY=",
+  "dgSpecHash": "JAQJtWNK4GU=",
   "success": true,
   "projectFilePath": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Domain\\DeelRate.Domain.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Emmanuel\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512"
+  ],
   "logs": []
 }

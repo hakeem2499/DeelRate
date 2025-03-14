@@ -39,7 +39,7 @@ builder
         options.TokenValidationParameters.NameClaimType = "name";
     });
 
-// Add authorization (optional, for future use)
+// Add authorization 
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
