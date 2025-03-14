@@ -7,7 +7,7 @@ public class CryptoAmount : ValueObject
     public decimal Value { get; private set; }
     public CryptoType CryptoCurrency { get; private set; }
 
-    private CryptoAmount() { }
+    private CryptoAmount(decimal v) { }
 
     public CryptoAmount(decimal value, CryptoType cryptoCurrency)
     {

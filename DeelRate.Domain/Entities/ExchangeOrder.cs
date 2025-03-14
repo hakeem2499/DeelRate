@@ -1,3 +1,4 @@
+using System;
 using DeelRate.Domain.Common;
 using DeelRate.Domain.Enums;
 using DeelRate.Domain.ValueObjects;
@@ -8,12 +9,13 @@ public class ExchangeOrder : Entity
 {
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
-    public CryptoType? CryptoType { get; private set; }
+    public CryptoType CryptoType { get; private set; }
     public ExchangeOrderType ExchangeOrderType { get; private set; }
     public CryptoAmount? CryptoAmount { get; private set; }
     public FiatAmount? FiatAmount { get; private set; }
     public ExchangeOrderStatus Status { get; private set; }
-    public DestinationAddress? UserDestinationAddress { get; private set; }
+    public DestinationAddress UserDestinationAddress { get; private set; }
+    public DestinationAddress SystemDepositAddress { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
     public ExchangeCompleted? ExchangeCompleted { get; private set; }
@@ -28,117 +30,35 @@ public class ExchangeOrder : Entity
         ExchangeOrderType exchangeOrderType,
         CryptoAmount? cryptoAmount,
         FiatAmount? fiatAmount,
-        DestinationAddress? userDestinationAddress
+        DestinationAddress userDestinationAddress,
+        DestinationAddress systemDepositAddress
     )
     {
-        // Guard clauses and validation
-        if (userId == Guid.Empty)
+        Result validationResult = ValidateInitiation(
+            userId,
+            cryptoType,
+            exchangeOrderType,
+            cryptoAmount,
+            fiatAmount,
+            userDestinationAddress,
+            systemDepositAddress
+        );
+
+        if (validationResult.IsFailure)
         {
-            return Result.Failure<ExchangeOrder>(
-                Error.Validation("ExchangeOrder.InvalidUserId", "User ID must be a valid GUID.")
-            );
+            return (Result<ExchangeOrder>)validationResult;
         }
 
-        if (!Enum.IsDefined(typeof(ExchangeOrderType), exchangeOrderType))
-        {
-            return Result.Failure<ExchangeOrder>(
-                Error.Validation("ExchangeOrder.InvalidType", "Invalid exchange order type.")
-            );
-        }
-
-        if (!Enum.IsDefined(typeof(CryptoType), cryptoType))
-        {
-            return Result.Failure<ExchangeOrder>(
-                Error.Validation("ExchangeOrder.InvalidCryptoType", "Invalid cryptocurrency type.")
-            );
-        }
-
-        // Validate amounts and destination based on order type
-        if (exchangeOrderType == ExchangeOrderType.Buy)
-        {
-            if (fiatAmount is null)
-            {
-                return Result.Failure<ExchangeOrder>(
-                    Error.Validation(
-                        "ExchangeOrder.MissingFiatAmount",
-                        "FiatAmount is required for a Buy order."
-                    )
-                );
-            }
-
-            if (cryptoAmount is not null)
-            {
-                return Result.Failure<ExchangeOrder>(
-                    Error.Validation(
-                        "ExchangeOrder.UnexpectedCryptoAmount",
-                        "CryptoAmount should not be provided for a Buy order at initiation."
-                    )
-                );
-            }
-
-            if (userDestinationAddress?.DestinationAddressType != AddressType.CryptoDepositAddress)
-            {
-                return Result.Failure<ExchangeOrder>(
-                    Error.Validation(
-                        "ExchangeOrder.InvalidDestination",
-                        "For a Buy order, destination must be a crypto address."
-                    )
-                );
-            }
-        }
-        else if (exchangeOrderType is ExchangeOrderType.Sell)
-        {
-            if (cryptoAmount is null)
-            {
-                return Result.Failure<ExchangeOrder>(
-                    Error.Validation(
-                        "ExchangeOrder.MissingCryptoAmount",
-                        "CryptoAmount is required for a Sell order."
-                    )
-                );
-            }
-
-            if (fiatAmount is not null)
-            {
-                return Result.Failure<ExchangeOrder>(
-                    Error.Validation(
-                        "ExchangeOrder.UnexpectedFiatAmount",
-                        "FiatAmount should not be provided for a Sell order at initiation."
-                    )
-                );
-            }
-
-            if (userDestinationAddress?.DestinationAddressType != AddressType.FiatAccountNumber)
-            {
-                return Result.Failure<ExchangeOrder>(
-                    Error.Validation(
-                        "ExchangeOrder.InvalidDestination",
-                        "For a Sell order, destination must be a fiat account."
-                    )
-                );
-            }
-        }
-
-        if (userDestinationAddress is null)
-        {
-            return Result.Failure<ExchangeOrder>(
-                Error.Validation(
-                    "ExchangeOrder.MissingDestination",
-                    "User destination address is required."
-                )
-            );
-        }
-
-        // Create the order
         var order = new ExchangeOrder
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             CryptoType = cryptoType,
             ExchangeOrderType = exchangeOrderType,
-            CryptoAmount = cryptoAmount, // Null for Buy, populated for Sell
-            FiatAmount = fiatAmount, // Populated for Buy, null for Sell
+            CryptoAmount = cryptoAmount, // Null for Buy, set for Sell
+            FiatAmount = fiatAmount, // Set for Buy, null for Sell
             UserDestinationAddress = userDestinationAddress,
+            SystemDepositAddress = systemDepositAddress,
             Status = ExchangeOrderStatus.Initiated,
             CreatedAt = DateTime.UtcNow,
         };
@@ -146,7 +66,157 @@ public class ExchangeOrder : Entity
         return Result.Success(order);
     }
 
-    // State transition methods
+    private static Result ValidateInitiation(
+        Guid userId,
+        CryptoType cryptoType,
+        ExchangeOrderType exchangeOrderType,
+        CryptoAmount? cryptoAmount,
+        FiatAmount? fiatAmount,
+        DestinationAddress userDestinationAddress,
+        DestinationAddress systemDepositAddress
+    )
+    {
+        if (userId == Guid.Empty)
+        {
+            return Result.Failure(
+                Error.Validation("ExchangeOrder.InvalidUserId", "User ID must be a valid GUID.")
+            );
+        }
+
+        if (!Enum.IsDefined(typeof(ExchangeOrderType), exchangeOrderType))
+        {
+            return Result.Failure(
+                Error.Validation("ExchangeOrder.InvalidType", "Invalid exchange order type.")
+            );
+        }
+
+        if (!Enum.IsDefined(typeof(CryptoType), cryptoType))
+        {
+            return Result.Failure(
+                Error.Validation("ExchangeOrder.InvalidCryptoType", "Invalid cryptocurrency type.")
+            );
+        }
+
+        return exchangeOrderType switch
+        {
+            ExchangeOrderType.Buy => ValidateBuyOrder(
+                fiatAmount,
+                cryptoAmount,
+                userDestinationAddress,
+                systemDepositAddress
+            ),
+            ExchangeOrderType.Sell => ValidateSellOrder(
+                cryptoAmount,
+                fiatAmount,
+                userDestinationAddress,
+                systemDepositAddress
+            ),
+            _ => Result.Failure(
+                Error.Validation("ExchangeOrder.InvalidType", "Invalid exchange order type.")
+            ),
+        };
+    }
+
+    private static Result ValidateBuyOrder(
+        FiatAmount? fiatAmount,
+        CryptoAmount? cryptoAmount,
+        DestinationAddress userDestinationAddress,
+        DestinationAddress systemDepositAddress
+    )
+    {
+        if (fiatAmount == null)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.MissingFiatAmount",
+                    "FiatAmount is required to buy crypto."
+                )
+            );
+        }
+
+        if (cryptoAmount != null)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.UnexpectedCryptoAmount",
+                    "CryptoAmount should not be provided for a Buy order."
+                )
+            );
+        }
+
+        if (userDestinationAddress.DestinationAddressType != AddressType.CryptoDepositAddress)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.InvalidDestination",
+                    "For a Buy order, destination must be a crypto address."
+                )
+            );
+        }
+
+        if (systemDepositAddress.DestinationAddressType != AddressType.FiatAccountNumber)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.InvalidSystemDeposit",
+                    "For a Buy order, system deposit must be a fiat account."
+                )
+            );
+        }
+
+        return Result.Success();
+    }
+
+    private static Result ValidateSellOrder(
+        CryptoAmount? cryptoAmount,
+        FiatAmount? fiatAmount,
+        DestinationAddress userDestinationAddress,
+        DestinationAddress systemDepositAddress
+    )
+    {
+        if (cryptoAmount == null)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.MissingCryptoAmount",
+                    "CryptoAmount is required to sell crypto."
+                )
+            );
+        }
+
+        if (fiatAmount != null)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.UnexpectedFiatAmount",
+                    "FiatAmount should not be provided for a Sell order."
+                )
+            );
+        }
+
+        if (userDestinationAddress.DestinationAddressType != AddressType.FiatAccountNumber)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.InvalidDestination",
+                    "For a Sell order, destination must be a fiat account."
+                )
+            );
+        }
+
+        if (systemDepositAddress.DestinationAddressType != AddressType.CryptoDepositAddress)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.InvalidSystemDeposit",
+                    "For a Sell order, system deposit must be a crypto address."
+                )
+            );
+        }
+
+        return Result.Success();
+    }
+
     public Result MarkPaymentPending()
     {
         if (Status != ExchangeOrderStatus.Initiated)
@@ -159,12 +229,11 @@ public class ExchangeOrder : Entity
             );
         }
 
-        // Amounts are already validated at Initiate
         Status = ExchangeOrderStatus.PaymentPending;
         return Result.Success();
     }
 
-    public Result ConfirmPayment(
+    public Result SystemConfirmPayment(
         FiatAmount? actualFiatReceived,
         CryptoAmount? actualCryptoReceived,
         decimal rate
@@ -175,7 +244,7 @@ public class ExchangeOrder : Entity
             return Result.Failure(
                 Error.Validation(
                     "ExchangeOrder.NotPaymentPending",
-                    "Order must be in PaymentPending state to confirm payment."
+                    "Order must be in PaymentPending state for system confirmation."
                 )
             );
         }
@@ -187,100 +256,139 @@ public class ExchangeOrder : Entity
             );
         }
 
+        Result validationResult = ExchangeOrderType switch
+        {
+            ExchangeOrderType.Buy => ValidateBuyPayment(actualFiatReceived),
+            ExchangeOrderType.Sell => ValidateSellPayment(actualCryptoReceived),
+            _ => Result.Failure(
+                Error.Validation("ExchangeOrder.InvalidType", "Invalid exchange order type.")
+            ),
+        };
+
+        if (validationResult.IsFailure)
+        {
+            return validationResult;
+        }
+
         if (ExchangeOrderType == ExchangeOrderType.Buy)
         {
-            if (actualFiatReceived is null)
-            {
-                return Result.Failure(
-                    Error.Validation(
-                        "ExchangeOrder.MissingFiatReceived",
-                        "Actual fiat received is required for Buy confirmation."
-                    )
-                );
-            }
-
-            if (!AreFiatAmountsEqual(FiatAmount, actualFiatReceived))
-            {
-                return Result.Failure(
-                    Error.Validation(
-                        "ExchangeOrder.FiatMismatch",
-                        "Actual fiat received does not match requested amount."
-                    )
-                );
-            }
-
-            CryptoAmount = new CryptoAmount(actualFiatReceived.Amount / rate, CryptoType.Value);
+            CryptoAmount = new CryptoAmount(actualFiatReceived!.Amount / rate, CryptoType);
         }
         else if (ExchangeOrderType == ExchangeOrderType.Sell)
         {
-            if (actualCryptoReceived is null)
-            {
-                return Result.Failure(
-                    Error.Validation(
-                        "ExchangeOrder.MissingCryptoReceived",
-                        "Actual crypto received is required for Sell confirmation."
-                    )
-                );
-            }
-
-            if (!AreCryptoAmountsEqual(CryptoAmount, actualCryptoReceived))
-            {
-                return Result.Failure(
-                    Error.Validation(
-                        "ExchangeOrder.CryptoMismatch",
-                        "Actual crypto received does not match expected amount."
-                    )
-                );
-            }
-            FiatType fiatType = actualFiatReceived.FiatType;
-            FiatAmount = new FiatAmount(fiatType, actualCryptoReceived.Value * rate);
+            FiatAmount = new FiatAmount(FiatAmount!.FiatType, actualCryptoReceived!.Value * rate);
         }
 
-        Status = ExchangeOrderStatus.ConfirmPayment;
+        Status = ExchangeOrderStatus.SystemConfirmedPayment;
+        return Result.Success();
+    }
+
+    private Result ValidateBuyPayment(FiatAmount? actualFiatReceived)
+    {
+        if (actualFiatReceived == null)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.MissingFiatReceived",
+                    "Actual fiat received is required for Buy confirmation."
+                )
+            );
+        }
+
+        if (!AreFiatAmountsEqual(FiatAmount, actualFiatReceived))
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.FiatMismatch",
+                    "Actual fiat received does not match requested amount."
+                )
+            );
+        }
+
+        return Result.Success();
+    }
+
+    private Result ValidateSellPayment(CryptoAmount? actualCryptoReceived)
+    {
+        if (actualCryptoReceived == null)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.MissingCryptoReceived",
+                    "Actual crypto received is required for Sell confirmation."
+                )
+            );
+        }
+
+        if (!AreCryptoAmountsEqual(CryptoAmount, actualCryptoReceived))
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.CryptoMismatch",
+                    "Actual crypto received does not match expected amount."
+                )
+            );
+        }
+
+        return Result.Success();
+    }
+
+    public Result UserConfirmPayment()
+    {
+        if (Status != ExchangeOrderStatus.SystemConfirmedPayment)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.NotSystemConfirmed",
+                    "Order must be system-confirmed before user confirmation."
+                )
+            );
+        }
+
+        if (CryptoAmount == null || FiatAmount == null)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "ExchangeOrder.MissingAmounts",
+                    "Both CryptoAmount and FiatAmount must be set before user confirmation."
+                )
+            );
+        }
+
+        Status = ExchangeOrderStatus.UserConfirmPayment;
         return Result.Success();
     }
 
     public Result<ExchangeCompleted> CompleteExchange()
     {
-        if (Status != ExchangeOrderStatus.ConfirmPayment)
+        if (Status != ExchangeOrderStatus.UserConfirmPayment)
         {
             return Result.Failure<ExchangeCompleted>(
                 Error.Validation(
-                    "ExchangeOrder.NotConfirmed",
-                    "Order must be in ConfirmPayment state to complete."
-                )
-            );
-        }
-
-        if (CryptoAmount is null || FiatAmount is null)
-        {
-            return Result.Failure<ExchangeCompleted>(
-                Error.Validation(
-                    "ExchangeOrder.MissingAmounts",
-                    "Both CryptoAmount and FiatAmount must be set before completion."
+                    "ExchangeOrder.NotUserConfirmed",
+                    "Order must be user-confirmed to complete."
                 )
             );
         }
 
         decimal rate =
             ExchangeOrderType == ExchangeOrderType.Buy
-                ? FiatAmount.Amount / CryptoAmount.Value
-                : CryptoAmount.Value / FiatAmount.Amount;
+                ? FiatAmount!.Amount / CryptoAmount!.Value
+                : CryptoAmount!.Value / FiatAmount!.Amount;
 
         ExchangeCompleted = ExchangeCompleted.Create(
             Id,
             UserId,
             ExchangeOrderType,
-            CryptoAmount.CryptoCurrency,
-            FiatAmount.FiatType,
-            CryptoAmount.Value,
-            FiatAmount.Amount,
+            CryptoAmount!.CryptoCurrency,
+            FiatAmount!.FiatType,
+            CryptoAmount!.Value,
+            FiatAmount!.Amount,
             rate
         );
 
         Status = ExchangeOrderStatus.ExchangeOrderCompleted;
         CompletedAt = DateTime.UtcNow;
-
         return Result.Success(ExchangeCompleted);
     }
 
@@ -307,15 +415,19 @@ public class ExchangeOrder : Entity
         return Result.Success();
     }
 
-    private bool AreFiatAmountsEqual(FiatAmount? expected, FiatAmount? actual) =>
-        expected is not null
-        && actual is null
-        && expected.FiatType == actual.FiatType
-        && Math.Abs(expected.Amount - actual.Amount) < 0.01m;
+    private static bool AreFiatAmountsEqual(FiatAmount? expected, FiatAmount? actual)
+    {
+        return expected is not null
+            && actual is not null
+            && expected.FiatType == actual.FiatType
+            && Math.Abs(expected.Amount - actual.Amount) < 0.01m;
+    }
 
-    private bool AreCryptoAmountsEqual(CryptoAmount? expected, CryptoAmount? actual) =>
-        expected is not null
-        && actual is null
-        && expected.CryptoCurrency == actual.CryptoCurrency
-        && Math.Abs(expected.Value - actual.Value) < 0.00000001m;
+    private static bool AreCryptoAmountsEqual(CryptoAmount? expected, CryptoAmount? actual)
+    {
+        return expected is not null
+            && actual is not null
+            && expected.CryptoCurrency == actual.CryptoCurrency
+            && Math.Abs(expected.Value - actual.Value) < 0.00000001m;
+    }
 }
