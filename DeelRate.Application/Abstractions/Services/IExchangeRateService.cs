@@ -1,10 +1,8 @@
-// Purpose: Interface for the ExchangeRateService class.
-using DeelRate.Domain.ValueObjects;
+using DeelRate.Domain.Common;
 
 namespace DeelRate.Application.Abstractions.Services;
 
 public interface IExchangeRateService
 {
-    Task<FiatAmount> CalculateFiatAmount(CryptoAmount cryptoAmount);
-    Task<CryptoAmount> CalculateCryptoAmount(FiatAmount fiatAmount, string cryptoCurrency);
+    Task<Result<List<ExchangeRate>>> GetExchangeRatesAsync(IEnumerable<CurrencyPair> currencyPairs);
 }

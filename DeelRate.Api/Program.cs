@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Scalar.AspNetCore;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add OpenAPI services (for Scalar)
 builder.Services.AddOpenApi();
 
 // Configure authentication with Kinde
-var kindeSettings = builder.Configuration.GetSection("Kinde");
+IConfigurationSection kindeSettings = builder.Configuration.GetSection("Kinde");
 builder
     .Services.AddAuthentication(options =>
     {
@@ -42,7 +42,7 @@ builder
 // Add authorization 
 builder.Services.AddAuthorization();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
@@ -86,11 +86,11 @@ app.MapGet(
     [Authorize]
     (HttpContext context) =>
     {
-        var user = context.User;
+        System.Security.Claims.ClaimsPrincipal user = context.User;
         return Results.Ok(
             new
             {
-                Name = user.Identity?.Name,
+                user.Identity?.Name,
                 Email = user.FindFirst("email")?.Value,
                 UserId = user.FindFirst("sub")?.Value,
             }
