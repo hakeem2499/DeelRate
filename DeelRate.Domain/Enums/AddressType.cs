@@ -1,8 +1,7 @@
-namespace DeelRate.Domain.Enums
+namespace DeelRate.Domain.Enums;
+
+public enum AddressType
 {
-    public enum AddressType
-    {
-        CryptoDepositAddress = 0,
-        FiatAccountNumber = 1,
-    }
+    CryptoDepositAddress = 0,
+    FiatAccountNumber = 1,
 }

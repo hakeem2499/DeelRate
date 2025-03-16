@@ -15,3 +15,4 @@ C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\DeelRate.
 C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\refint\DeelRate.Infrastucture.dll
 C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\DeelRate.Infrastucture.pdb
 C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\ref\DeelRate.Infrastucture.dll
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Infrastucture\obj\Debug\net9.0\DeelRate.Infrastucture.sourcelink.json

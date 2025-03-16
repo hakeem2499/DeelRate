@@ -1,6 +1,7 @@
 using DeelRate.Common;
+using DeelRate.Domain.Enums;
 
-namespace DeelRate.Domain.Enums;
+namespace DeelRate.Domain.ValueObjects;
 
 public class CryptoAmount : ValueObject
 {

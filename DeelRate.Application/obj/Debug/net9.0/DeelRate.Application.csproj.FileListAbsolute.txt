@@ -13,3 +13,4 @@ C:\Users\Emmanuel\DeelRate\Api\DeelRate.Application\obj\Debug\net9.0\DeelRate.Ap
 C:\Users\Emmanuel\DeelRate\Api\DeelRate.Application\obj\Debug\net9.0\refint\DeelRate.Application.dll
 C:\Users\Emmanuel\DeelRate\Api\DeelRate.Application\obj\Debug\net9.0\DeelRate.Application.pdb
 C:\Users\Emmanuel\DeelRate\Api\DeelRate.Application\obj\Debug\net9.0\ref\DeelRate.Application.dll
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Application\obj\Debug\net9.0\DeelRate.Application.sourcelink.json

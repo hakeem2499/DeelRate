@@ -124,7 +124,7 @@ public class ExchangeOrder : Entity
         DestinationAddress systemDepositAddress
     )
     {
-        if (fiatAmount == null)
+        if (fiatAmount is null)
         {
             return Result.Failure(
                 Error.Validation(
@@ -134,7 +134,7 @@ public class ExchangeOrder : Entity
             );
         }
 
-        if (cryptoAmount != null)
+        if (cryptoAmount is not null)
         {
             return Result.Failure(
                 Error.Validation(
@@ -174,7 +174,7 @@ public class ExchangeOrder : Entity
         DestinationAddress systemDepositAddress
     )
     {
-        if (cryptoAmount == null)
+        if (cryptoAmount is null)
         {
             return Result.Failure(
                 Error.Validation(
@@ -184,7 +184,7 @@ public class ExchangeOrder : Entity
             );
         }
 
-        if (fiatAmount != null)
+        if (fiatAmount is not null)
         {
             return Result.Failure(
                 Error.Validation(
@@ -219,7 +219,7 @@ public class ExchangeOrder : Entity
 
     public Result MarkPaymentPending()
     {
-        if (Status != ExchangeOrderStatus.Initiated)
+        if (Status is not ExchangeOrderStatus.Initiated)
         {
             return Result.Failure(
                 Error.Validation(
@@ -285,7 +285,7 @@ public class ExchangeOrder : Entity
 
     private Result ValidateBuyPayment(FiatAmount? actualFiatReceived)
     {
-        if (actualFiatReceived == null)
+        if (actualFiatReceived is null)
         {
             return Result.Failure(
                 Error.Validation(
@@ -310,7 +310,7 @@ public class ExchangeOrder : Entity
 
     private Result ValidateSellPayment(CryptoAmount? actualCryptoReceived)
     {
-        if (actualCryptoReceived == null)
+        if (actualCryptoReceived is null)
         {
             return Result.Failure(
                 Error.Validation(
@@ -345,7 +345,7 @@ public class ExchangeOrder : Entity
             );
         }
 
-        if (CryptoAmount == null || FiatAmount == null)
+        if (CryptoAmount is null || FiatAmount is null)
         {
             return Result.Failure(
                 Error.Validation(

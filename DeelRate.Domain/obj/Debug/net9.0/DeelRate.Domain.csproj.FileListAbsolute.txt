@@ -9,3 +9,5 @@ C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\DeelRate.Domain.
 C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\refint\DeelRate.Domain.dll
 C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\DeelRate.Domain.pdb
 C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\ref\DeelRate.Domain.dll
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\DeelRate.Domain.csproj.AssemblyReference.cache
+C:\Users\Emmanuel\DeelRate\Api\DeelRate.Domain\obj\Debug\net9.0\DeelRate.Domain.sourcelink.json
