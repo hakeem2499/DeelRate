@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DeelRate.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+79221bd93d627d28c84cd42a2ac76cbdf08fe02a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8abad57a467f49f49a49a42fd39740c393983e8b")]
 [assembly: System.Reflection.AssemblyProductAttribute("DeelRate.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DeelRate.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
