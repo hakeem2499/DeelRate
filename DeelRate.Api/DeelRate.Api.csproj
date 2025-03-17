@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DeelRate.Application\DeelRate.Application.csproj" />
-    <ProjectReference Include="..\DeelRate.Infrastucture\DeelRate.Infrastucture.csproj" />
+    <ProjectReference Include="..\DeelRate.Infrastructure\DeelRate.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

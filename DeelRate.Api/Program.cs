@@ -1,16 +1,27 @@
+using DeelRate.Api;
+using DeelRate.Infrastructure;
+using DeelRate.Infrastructure.Services.CoinApiClient;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add OpenAPI services (for Scalar)
 builder.Services.AddOpenApi();
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// Bind KindeSettings from configuration
+builder
+    .Services.AddOptions<KindeSettings>()
+    .Bind(builder.Configuration.GetSection("KindeSettings"))
+    .ValidateDataAnnotations() // Validate using data annotations
+    .ValidateOnStart(); // Ensure validation happens on startup
 
 // Configure authentication with Kinde
-IConfigurationSection kindeSettings = builder.Configuration.GetSection("Kinde");
 builder
     .Services.AddAuthentication(options =>
     {
@@ -24,12 +35,16 @@ builder
     })
     .AddOpenIdConnect(options =>
     {
-        options.Authority = kindeSettings["Authority"]; // Use "Domain" to match Kinde's issuer
-        options.ClientId = kindeSettings["ClientId"];
-        options.ClientSecret = kindeSettings["ClientSecret"];
-        options.ResponseType = "code"; // Authorization code flow
+        KindeSettings? kindeSettings = builder
+            .Configuration.GetSection("KindeSettings")
+            .Get<KindeSettings>();
+
+        options.Authority = kindeSettings!.Domain; // Use "Domain" to match Kinde's issuer
+        options.ClientId = kindeSettings.ClientId;
+        options.ClientSecret = kindeSettings.ClientSecret;
+        options.ResponseType = kindeSettings.ResponseType; // Authorization code flow
         options.SaveTokens = true; // Store tokens for later use
-        options.CallbackPath = kindeSettings["RedirectUri"]; // Must match Kinde's Redirect URI
+        options.CallbackPath = kindeSettings.RedirectUri; // Must match Kinde's Redirect URI
         options.Scope.Add("openid");
         options.Scope.Add("profile");
         options.Scope.Add("email");
@@ -39,7 +54,7 @@ builder
         options.TokenValidationParameters.NameClaimType = "name";
     });
 
-// Add authorization 
+// Add authorization
 builder.Services.AddAuthorization();
 
 WebApplication app = builder.Build();
@@ -59,7 +74,7 @@ app.UseAuthorization();
 // Authentication endpoints
 app.MapGet(
     "/auth/login",
-    (HttpContext context, string returnUrl = "/") =>
+    (HttpContext context, string returnUrl = "/dashboard") =>
     {
         return Results.Challenge(
             new AuthenticationProperties { RedirectUri = returnUrl },
@@ -70,12 +85,12 @@ app.MapGet(
 
 app.MapGet(
     "/auth/logout",
-    async (HttpContext context) =>
+    async (HttpContext context, IOptions<KindeSettings> kindeSettings) =>
     {
         await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         await context.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
         return Results.Redirect(
-            $"{kindeSettings["Authority"]}/logout?redirect={kindeSettings["RedirectUri"]}"
+            $"{kindeSettings.Value.Domain}/logout?redirect={kindeSettings.Value.LogoutRedirectUri}"
         );
     }
 );
@@ -95,6 +110,16 @@ app.MapGet(
                 UserId = user.FindFirst("sub")?.Value,
             }
         );
+    }
+);
+
+app.MapGet(
+    "/exchange-rate/{coin}/{currency}",
+    async (ICoinApi coinApi, string coin, string currency) =>
+    {
+        CoinApiResponse? response = await coinApi.GetCoinExchangeRateAsync(coin, currency);
+
+        return Results.Ok(response);
     }
 );
 

@@ -36,8 +36,8 @@
               "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Application\\DeelRate.Application.csproj": {
                 "projectPath": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Application\\DeelRate.Application.csproj"
               },
-              "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastucture\\DeelRate.Infrastucture.csproj": {
-                "projectPath": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastucture\\DeelRate.Infrastucture.csproj"
+              "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastructure\\DeelRate.Infrastructure.csproj": {
+                "projectPath": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastructure\\DeelRate.Infrastructure.csproj"
               }
             }
           }
@@ -250,14 +250,14 @@
         }
       }
     },
-    "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastucture\\DeelRate.Infrastucture.csproj": {
+    "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastructure\\DeelRate.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastucture\\DeelRate.Infrastucture.csproj",
-        "projectName": "DeelRate.Infrastucture",
-        "projectPath": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastucture\\DeelRate.Infrastucture.csproj",
+        "projectUniqueName": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastructure\\DeelRate.Infrastructure.csproj",
+        "projectName": "DeelRate.Infrastructure",
+        "projectPath": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastructure\\DeelRate.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\Emmanuel\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastucture\\obj\\",
+        "outputPath": "C:\\Users\\Emmanuel\\DeelRate\\Api\\DeelRate.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -301,13 +301,21 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
-            "Microsoft.Extensions.Configuration": {
+            "Microsoft.Extensions.Configuration.Abstractions": {
               "target": "Package",
               "version": "[9.0.3, )"
             },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            },
             "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
-              "version": "[10.0.0-preview.1, )"
+              "version": "[9.0.4, )"
+            },
+            "Refit.HttpClientFactory": {
+              "target": "Package",
+              "version": "[8.0.0, )"
             },
             "Refit.Newtonsoft.Json": {
               "target": "Package",

@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeelRate.Application", "Dee
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeelRate.Domain", "DeelRate.Domain\DeelRate.Domain.csproj", "{4E5CE0E1-5BED-4089-81A9-7B63F221E43B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeelRate.Infrastucture", "DeelRate.Infrastucture\DeelRate.Infrastucture.csproj", "{BA12E507-B857-4DD8-8CFB-5B2CDE1C58C1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeelRate.Infrastructure", "DeelRate.Infrastructure\DeelRate.Infrastructure.csproj", "{BA12E507-B857-4DD8-8CFB-5B2CDE1C58C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
