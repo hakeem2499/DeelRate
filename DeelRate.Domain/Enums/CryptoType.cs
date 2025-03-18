@@ -9,6 +9,7 @@ public enum CryptoType
     BNB = 4,
     USDT = 5,
     USDC = 6,
+
     BUSD = 7,
     DOGE = 8,
 }

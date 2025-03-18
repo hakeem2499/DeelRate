@@ -1,4 +1,8 @@
 using DeelRate.Api;
+using DeelRate.Api.Extensions;
+using DeelRate.Application;
+using DeelRate.Application.Abstractions.Services;
+using DeelRate.Domain.Common;
 using DeelRate.Infrastructure;
 using DeelRate.Infrastructure.Services.CoinApiClient;
 using Microsoft.AspNetCore.Authentication;
@@ -7,52 +11,22 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
+using Serilog;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog(
+    (context, loggerConfig) => loggerConfig.ReadFrom.Configuration(context.Configuration)
+);
+
 // Add OpenAPI services (for Scalar)
 builder.Services.AddOpenApi();
-builder.Services.AddInfrastructure(builder.Configuration);
 
-// Bind KindeSettings from configuration
+// Add services to the container through extension methods
 builder
-    .Services.AddOptions<KindeSettings>()
-    .Bind(builder.Configuration.GetSection("KindeSettings"))
-    .ValidateDataAnnotations() // Validate using data annotations
-    .ValidateOnStart(); // Ensure validation happens on startup
-
-// Configure authentication with Kinde
-builder
-    .Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-    })
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/auth/login"; // Redirect unauthenticated users here
-        options.LogoutPath = "/auth/logout";
-    })
-    .AddOpenIdConnect(options =>
-    {
-        KindeSettings? kindeSettings = builder
-            .Configuration.GetSection("KindeSettings")
-            .Get<KindeSettings>();
-
-        options.Authority = kindeSettings!.Domain; // Use "Domain" to match Kinde's issuer
-        options.ClientId = kindeSettings.ClientId;
-        options.ClientSecret = kindeSettings.ClientSecret;
-        options.ResponseType = kindeSettings.ResponseType; // Authorization code flow
-        options.SaveTokens = true; // Store tokens for later use
-        options.CallbackPath = kindeSettings.RedirectUri; // Must match Kinde's Redirect URI
-        options.Scope.Add("openid");
-        options.Scope.Add("profile");
-        options.Scope.Add("email");
-        options.GetClaimsFromUserInfoEndpoint = true;
-
-        // Map Kinde claims
-        options.TokenValidationParameters.NameClaimType = "name";
-    });
+    .Services.AddInfrastructure(builder.Configuration)
+    .AddApplication()
+    .AddPresentation(builder.Configuration);
 
 // Add authorization
 builder.Services.AddAuthorization();
@@ -65,6 +39,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+
+app.UseSerilogRequestLogging();
+app.UseRequestContextLogging();
+app.UseExceptionHandler();
 
 // Use HTTPS redirection (disable in dev if not using HTTPS locally)
 app.UseHttpsRedirection();
@@ -114,12 +92,27 @@ app.MapGet(
 );
 
 app.MapGet(
-    "/exchange-rate/{coin}/{currency}",
-    async (ICoinApi coinApi, string coin, string currency) =>
+    "/exchange-rate/",
+    async (IExchangeRateService service) =>
     {
-        CoinApiResponse? response = await coinApi.GetCoinExchangeRateAsync(coin, currency);
+        var pairs = new List<CurrencyPair>
+        {
+            new("XRP", "USDC"),
+            new("BTC", "USDT"),
+            new("ETH", "USDT"),
+        };
+        Result<List<ExchangeRate>> result = await service.GetExchangeRatesAsync(pairs);
 
-        return Results.Ok(response);
+        return result.IsSuccess
+            ? Results.Ok(
+                result.Value.Select(r => new
+                {
+                    Pair = r.CurrencyPair.ToAssetPair(),
+                    r.Rate,
+                    Time = r.Timestamp,
+                })
+            )
+            : Results.BadRequest(result.Error);
     }
 );
 

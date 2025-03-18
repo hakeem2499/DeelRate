@@ -1,6 +1,8 @@
+using DeelRate.Domain.Enums;
+
 namespace DeelRate.Domain.Common;
 
-public record CurrencyPair(string BaseCurrency, string QuoteCurrency)
+public sealed record CurrencyPair(string BaseCurrency, string QuoteCurrency)
 {
     public string ToAssetPair() => $"{BaseCurrency}/{QuoteCurrency}";
 }
