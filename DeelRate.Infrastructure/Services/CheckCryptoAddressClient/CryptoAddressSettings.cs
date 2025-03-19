@@ -14,5 +14,5 @@ public class CryptoAddressSettings
     public string ApiKey { get; init; } = string.Empty;
 
     [Required]
-    public string ContentType { get; init; } = string.Empty;
+    public string ContentType { get; init; } = "application/json";
 }

@@ -4,6 +4,7 @@ using DeelRate.Application;
 using DeelRate.Application.Abstractions.Services;
 using DeelRate.Domain.Common;
 using DeelRate.Infrastructure;
+using DeelRate.Infrastructure.Services.CheckCryptoAddressClient;
 using DeelRate.Infrastructure.Services.CoinApiClient;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -113,6 +114,16 @@ app.MapGet(
                 })
             )
             : Results.BadRequest(result.Error);
+    }
+);
+
+app.MapPost(
+    "/wallet-address/",
+    async (ICryptoAddress service, CryptoAddressRequest request) =>
+    {
+        Result<CryptoAddressResponse> result = await service.CheckCryptoAddressAsync(request);
+
+        return result.Match(() => Results.Ok(result.Value), error => Results.BadRequest(error));
     }
 );
 
