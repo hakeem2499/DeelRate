@@ -254,8 +254,34 @@ public class ExchangeRateService : IExchangeRateService
         return await GetExchangeRatesAsync(supportedQuotesCurrencies);
     }
 
-    public async Task<Result<List<CurrencyPair>>> GetSupportedCurrencyPairsAsync() 
+    public async Task<Result<List<CurrencyPair>>> GetSupportedCurrencyPairsAsync()
+    {
+        return await Task.Run(() =>
         {
-            
-        }
+            // Fetch all supported currency pairs (this could come from a configuration or API)
+            List<CryptoType> supportedCurrencies = Enum.GetValues<CryptoType>().ToList();
+
+            var currencyPairs = new List<CurrencyPair>();
+            for (int i = 0; i < supportedCurrencies.Count; i++)
+            {
+                for (int j = i + 1; j < supportedCurrencies.Count; j++)
+                {
+                    currencyPairs.Add(
+                        new CurrencyPair(
+                            supportedCurrencies[i].ToString(),
+                            supportedCurrencies[j].ToString()
+                        )
+                    );
+                    currencyPairs.Add(
+                        new CurrencyPair(
+                            supportedCurrencies[j].ToString(),
+                            supportedCurrencies[i].ToString()
+                        )
+                    );
+                }
+            }
+
+            return Result.Success(currencyPairs);
+        });
+    }
 }

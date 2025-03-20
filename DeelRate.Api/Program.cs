@@ -3,6 +3,7 @@ using DeelRate.Api.Extensions;
 using DeelRate.Application;
 using DeelRate.Application.Abstractions.Services;
 using DeelRate.Domain.Common;
+using DeelRate.Domain.Enums;
 using DeelRate.Infrastructure;
 using DeelRate.Infrastructure.Services.CheckCryptoAddressClient;
 using DeelRate.Infrastructure.Services.CoinApiClient;
@@ -102,18 +103,10 @@ app.MapGet(
             new("BTC", "USDT"),
             new("ETH", "USDT"),
         };
-        Result<List<ExchangeRate>> result = await service.GetExchangeRatesAsync(pairs);
+        CryptoType Bitcoin = CryptoType.BTC;
+        Result<List<CurrencyPair>> result = await service.GetSupportedCurrencyPairsAsync();
 
-        return result.IsSuccess
-            ? Results.Ok(
-                result.Value.Select(r => new
-                {
-                    Pair = r.CurrencyPair.ToAssetPair(),
-                    r.Rate,
-                    Time = r.Timestamp,
-                })
-            )
-            : Results.BadRequest(result.Error);
+        return result.IsSuccess ? Results.Ok() : Results.BadRequest(result.Error);
     }
 );
 

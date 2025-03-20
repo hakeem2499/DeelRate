@@ -1,12 +1,17 @@
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Identity;
 using DeelRate.Application.Abstractions.Services;
 using DeelRate.Domain.Common;
 using DeelRate.Infrastructure.Services.CheckCryptoAddressClient;
 using DeelRate.Infrastructure.Services.CoinApiClient;
+using DeelRate.Infrastructure.Services.Common;
+using DeelRate.Infrastructure.Services.DepositAddressProvider;
 using DeelRate.Infrastructure.Services.Exchange;
 using DeelRate.Infrastructure.Time;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Polly;
 using Refit;
@@ -22,17 +27,74 @@ public static class DependencyInjection
     {
         // Configure and validate settings
         services
-            .AddOptions<CoinApiSettings>()
-            .Bind(configuration.GetSection(CoinApiSettings.ConfigurationSectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+            .ConfigureServiceSettings<CoinApiSettings>(configuration)
+            .ConfigureServiceSettings<CryptoAddressSettings>(configuration)
+            .ConfigureServiceSettings<CryptoDepositAddressProviderSettings>(configuration)
+            .ConfigureServiceSettings<FiatDepositAddressProviderSettings>(configuration)
+            .AddAzureKeyVault(configuration)
+            .AddExternalClient(configuration);
 
+        // Register other services
+        services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddScoped<IExchangeRateService, ExchangeRateService>();
+        services.AddMemoryCache();
+
+        return services;
+    }
+
+    private static IServiceCollection ConfigureServiceSettings<TSettings>(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+        where TSettings : class
+    {
         services
-            .AddOptions<CryptoAddressSettings>()
-            .Bind(configuration.GetSection(CryptoAddressSettings.ConfigurationSectionName))
+            .AddOptions<TSettings>()
+            .Bind(configuration.GetSection(typeof(TSettings).Name))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        return services;
+    }
+
+    private static IServiceCollection AddAzureKeyVault(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        // Bind and validate KeyVaultSettings
+        services
+            .AddOptions<KeyVaultSettings>()
+            .Bind(configuration.GetSection(KeyVaultSettings.ConfigurationSectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        // Configure Azure Key Vault
+        services.AddSingleton(provider =>
+        {
+            KeyVaultSettings keyVaultSettings = provider
+                .GetRequiredService<IOptions<KeyVaultSettings>>()
+                .Value;
+
+            // Add Azure Key Vault to the configuration
+            IConfigurationBuilder configBuilder = new ConfigurationBuilder()
+                .AddConfiguration(configuration)
+                .AddAzureKeyVault(
+                    new Uri(keyVaultSettings.KeyVaultUri),
+                    new DefaultAzureCredential()
+                );
+
+            return configBuilder.Build();
+        });
+
+        return services;
+    }
+
+    private static void AddExternalClient(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
         // Configure Refit to use Newtonsoft.Json
         var refitSettings = new RefitSettings
         {
@@ -75,13 +137,6 @@ public static class DependencyInjection
                 httpClient.DefaultRequestHeaders.Add("X-Api-Key", settings.ApiKey);
             }
         );
-
-        // Register other services
-        services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-        services.AddScoped<IExchangeRateService, ExchangeRateService>();
-        services.AddMemoryCache();
-
-        return services;
     }
 
     private static void AddRefitClient<T>(

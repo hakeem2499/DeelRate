@@ -12,4 +12,6 @@ public enum CryptoType
 
     BUSD = 7,
     DOGE = 8,
+    SOL = 9,
+    TRON = 10,
 }

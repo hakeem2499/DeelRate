@@ -4,4 +4,5 @@ public enum FiatType
 {
     USD = 0,
     NGN = 1,
+    EUR = 2,
 }

@@ -66,6 +66,46 @@ public class ExchangeOrder : Entity
         return Result.Success(order);
     }
 
+    public Result<ExchangeOrder> UpdateExchangeOrder(
+        CryptoAmount? cryptoAmount,
+        FiatAmount? fiatAmount,
+        DestinationAddress userDestinationAddress,
+        DestinationAddress systemDepositAddress
+    )
+    {
+        if (Status != ExchangeOrderStatus.Initiated)
+        {
+            return Result.Failure<ExchangeOrder>(
+                Error.Validation(
+                    "ExchangeOrder.NotInitiated",
+                    "Order must be in Initiated state to update."
+                )
+            );
+        }
+
+        Result validationResult = ValidateInitiation(
+            UserId,
+            CryptoType,
+            ExchangeOrderType,
+            cryptoAmount,
+            fiatAmount,
+            userDestinationAddress,
+            systemDepositAddress
+        );
+
+        if (validationResult.IsFailure)
+        {
+            return (Result<ExchangeOrder>)validationResult;
+        }
+
+        CryptoAmount = cryptoAmount;
+        FiatAmount = fiatAmount;
+        UserDestinationAddress = userDestinationAddress;
+        SystemDepositAddress = systemDepositAddress;
+
+        return Result.Success(this);
+    }
+
     private static Result ValidateInitiation(
         Guid userId,
         CryptoType cryptoType,
