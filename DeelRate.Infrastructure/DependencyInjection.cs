@@ -1,7 +1,9 @@
+using System.Net.Http.Headers;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 using DeelRate.Application.Abstractions.Services;
 using DeelRate.Domain.Common;
+using DeelRate.Infrastructure.Services.BrevoEmailServiceClient;
 using DeelRate.Infrastructure.Services.CheckCryptoAddressClient;
 using DeelRate.Infrastructure.Services.CoinApiClient;
 using DeelRate.Infrastructure.Services.Common;
@@ -13,6 +15,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Polly;
 using Refit;
 
@@ -22,17 +28,37 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration
+        IConfiguration configuration,
+        bool isDevelopment = false
     )
     {
         // Configure and validate settings
         services
-            .ConfigureServiceSettings<CoinApiSettings>(configuration)
-            .ConfigureServiceSettings<CryptoAddressSettings>(configuration)
-            .ConfigureServiceSettings<CryptoDepositAddressProviderSettings>(configuration)
-            .ConfigureServiceSettings<FiatDepositAddressProviderSettings>(configuration)
-            .AddAzureKeyVault(configuration)
-            .AddExternalClient(configuration);
+            .ConfigureServiceSettings<CoinApiSettings>(
+                CoinApiSettings.ConfigurationSectionName,
+                configuration
+            )
+            .ConfigureServiceSettings<CryptoAddressSettings>(
+                CryptoAddressSettings.ConfigurationSectionName,
+                configuration
+            )
+            .ConfigureServiceSettings<CryptoDepositAddressProviderSettings>(
+                CryptoDepositAddressProviderSettings.ConfigurationSectionName,
+                configuration
+            )
+            .ConfigureServiceSettings<FiatDepositAddressProviderSettings>(
+                FiatDepositAddressProviderSettings.ConfigurationSectionName,
+                configuration
+            );
+
+        // Conditionally add Azure Key Vault and other production-specific configurations
+        if (!isDevelopment)
+        {
+            services.AddAzureKeyVault(configuration);
+        }
+
+        // Add external clients and OpenTelemetry
+        services.AddExternalClients().AddOpenTelemetryServices(isDevelopment);
 
         // Register other services
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
@@ -44,13 +70,14 @@ public static class DependencyInjection
 
     private static IServiceCollection ConfigureServiceSettings<TSettings>(
         this IServiceCollection services,
+        string sectionName,
         IConfiguration configuration
     )
         where TSettings : class
     {
         services
             .AddOptions<TSettings>()
-            .Bind(configuration.GetSection(typeof(TSettings).Name))
+            .Bind(configuration.GetSection(sectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
@@ -63,11 +90,10 @@ public static class DependencyInjection
     )
     {
         // Bind and validate KeyVaultSettings
-        services
-            .AddOptions<KeyVaultSettings>()
-            .Bind(configuration.GetSection(KeyVaultSettings.ConfigurationSectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+        services.ConfigureServiceSettings<KeyVaultSettings>(
+            KeyVaultSettings.ConfigurationSectionName,
+            configuration
+        );
 
         // Configure Azure Key Vault
         services.AddSingleton(provider =>
@@ -90,10 +116,7 @@ public static class DependencyInjection
         return services;
     }
 
-    private static void AddExternalClient(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
+    private static IServiceCollection AddExternalClients(this IServiceCollection services)
     {
         // Configure Refit to use Newtonsoft.Json
         var refitSettings = new RefitSettings
@@ -110,58 +133,160 @@ public static class DependencyInjection
             ),
         };
 
-        // Register Refit clients
-        AddRefitClient<ICoinApi>(
-            services,
-            refitSettings,
-            httpClient =>
-            {
-                CoinApiSettings? settings = configuration
-                    .GetSection(CoinApiSettings.ConfigurationSectionName)
-                    .Get<CoinApiSettings>();
-                httpClient.BaseAddress = new Uri(settings!.BaseAddress);
-                httpClient.DefaultRequestHeaders.Add("X-CoinAPI-Key", settings.ApiKey);
-                httpClient.DefaultRequestHeaders.Add("Accept", settings.ResponseType);
-            }
+        services.AddExternalClient(
+            new ExternalClientConfig<ICoinApi, CoinApiSettings>(
+                CoinApiSettings.ConfigurationSectionName,
+                (client, settings) =>
+                {
+                    client.BaseAddress = new Uri(settings.BaseAddress);
+                    client.DefaultRequestHeaders.Add("X-CoinAPI-Key", settings.ApiKey);
+                    client.DefaultRequestHeaders.Add("Accept", settings.ResponseType);
+                },
+                RetryCount: 3,
+                CircuitBreakerFailureCount: 5,
+                CircuitBreakerFailureDuration: TimeSpan.FromSeconds(30)
+            ),
+            refitSettings
         );
 
-        AddRefitClient<ICryptoAddress>(
-            services,
-            refitSettings,
-            httpClient =>
-            {
-                CryptoAddressSettings? settings = configuration
-                    .GetSection(CryptoAddressSettings.ConfigurationSectionName)
-                    .Get<CryptoAddressSettings>();
-                httpClient.BaseAddress = new Uri(settings!.BaseAddress);
-                httpClient.DefaultRequestHeaders.Add("X-Api-Key", settings.ApiKey);
-            }
+        services.AddExternalClient(
+            new ExternalClientConfig<ICryptoAddress, CryptoAddressSettings>(
+                CryptoAddressSettings.ConfigurationSectionName,
+                (client, settings) =>
+                {
+                    client.BaseAddress = new Uri(settings.BaseAddress);
+                    client.DefaultRequestHeaders.Add("X-CoinAPI-Key", settings.ApiKey);
+                },
+                RetryCount: 2,
+                CircuitBreakerFailureCount: 3,
+                CircuitBreakerFailureDuration: TimeSpan.FromSeconds(15)
+            ),
+            refitSettings
         );
+        services.AddExternalClient(
+            new ExternalClientConfig<IBrevoClient, BrevoApiSettings>(
+                BrevoApiSettings.ConfigurationSectionName,
+                (client, settings) =>
+                {
+                    client.BaseAddress = new Uri(settings.BaseAddress);
+                    client.DefaultRequestHeaders.Add("api-key", settings.ApiKey);
+                    client.DefaultRequestHeaders.Accept.Add(
+                        new MediaTypeWithQualityHeaderValue(settings.AcceptHeader)
+                    );
+                },
+                RetryCount: 2,
+                CircuitBreakerFailureCount: 3,
+                CircuitBreakerFailureDuration: TimeSpan.FromSeconds(15)
+            ),
+            refitSettings
+        );
+
+        return services;
     }
 
-    private static void AddRefitClient<T>(
-        IServiceCollection services,
-        RefitSettings refitSettings,
-        Action<HttpClient> configureClient
+    private static void AddExternalClient<TClient, TSettings>(
+        this IServiceCollection services,
+        ExternalClientConfig<TClient, TSettings> config,
+        RefitSettings refitSettings
     )
-        where T : class =>
+        where TClient : class
+        where TSettings : class
+    {
         services
-            .AddRefitClient<T>(refitSettings)
-            .ConfigureHttpClient(configureClient)
-            .AddHttpMessageHandler(provider =>
-            {
-                ILogger<T> logger = provider.GetRequiredService<ILogger<T>>();
-                return new LoggingHandler(logger);
-            })
+            .AddRefitClient<TClient>(refitSettings)
+            .ConfigureHttpClient(
+                (sp, client) =>
+                {
+                    TSettings settings = sp.GetRequiredService<IOptions<TSettings>>().Value;
+                    config.ConfigureClient(client, settings);
+                }
+            )
+            .AddHttpMessageHandler(sp => new LoggingHandler(
+                sp.GetRequiredService<ILogger<TClient>>()
+            ))
             .AddTransientHttpErrorPolicy(policy =>
                 policy.WaitAndRetryAsync(
-                    3,
-                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))
+                    config.RetryCount,
+                    retry => TimeSpan.FromSeconds(Math.Pow(2, retry))
                 )
             )
             .AddTransientHttpErrorPolicy(policy =>
-                policy.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30))
+                policy.CircuitBreakerAsync(
+                    config.CircuitBreakerFailureCount,
+                    config.CircuitBreakerFailureDuration
+                )
             );
+    }
+
+    private static void AddOpenTelemetryServices(
+        this IServiceCollection services,
+        bool isDevelopment
+    )
+    {
+        services
+            .AddOpenTelemetry()
+            .ConfigureResource(resource =>
+                resource.AddService("DeelRate.CryptoExchange", serviceVersion: "1.0.0")
+            )
+            .WithTracing(tracing =>
+            {
+                tracing
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddSource("DeelRate"); // For custom traces
+
+                if (isDevelopment)
+                {
+                    tracing.AddConsoleExporter(); // For development
+                }
+                else
+                {
+                    // Use OTLP or another exporter for production
+                    tracing.AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = new Uri("http://your-otlp-endpoint:4317");
+                    });
+                }
+            })
+            .WithMetrics(metrics =>
+            {
+                metrics
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation(); // Add runtime metrics
+
+                if (isDevelopment)
+                {
+                    metrics.AddConsoleExporter(); // For development
+                }
+                else
+                {
+                    // Use Prometheus or another exporter for production
+                    metrics.AddPrometheusExporter();
+                }
+            });
+
+        // Enhance logging with OpenTelemetry
+        services.AddLogging(builder =>
+        {
+            builder.AddOpenTelemetry(options =>
+            {
+                options.IncludeFormattedMessage = true;
+                options.IncludeScopes = true;
+                options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("DeelRate"));
+
+                if (isDevelopment)
+                {
+                    options.AddConsoleExporter(); // For development
+                }
+                else
+                {
+                    // Use OTLP or another exporter for production
+                    options.AddOtlpExporter();
+                }
+            });
+        });
+    }
 }
 
 public class LoggingHandler : DelegatingHandler

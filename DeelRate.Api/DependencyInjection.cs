@@ -26,7 +26,7 @@ public static class DependencyInjection
     {
         services
             .AddOptions<KindeSettings>()
-            .Bind(configuration.GetSection("KindeSettings"))
+            .Bind(configuration.GetSection(KindeSettings.ConfigurationSectionName))
             .ValidateDataAnnotations() // Validate using data annotations
             .ValidateOnStart(); // Ensure validation happens on startup
         services
@@ -43,7 +43,7 @@ public static class DependencyInjection
             .AddOpenIdConnect(options =>
             {
                 KindeSettings? kindeSettings = configuration
-                    .GetSection("KindeSettings")
+                    .GetSection(KindeSettings.ConfigurationSectionName)
                     .Get<KindeSettings>();
 
                 options.Authority = kindeSettings!.Domain; // Use "Domain" to match Kinde's issuer
